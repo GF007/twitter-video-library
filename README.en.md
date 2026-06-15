@@ -2,7 +2,9 @@
 
 [中文说明](README.md) · [Live validation site](https://bytedance.aiforce.cloud/app/app_4kbvt59uxdxaq/)
 
-[![TStoryboard live validation screenshot](docs/assets/tstoryboard-preview.png)](https://bytedance.aiforce.cloud/app/app_4kbvt59uxdxaq/)
+This repository documents a workflow for building a Twitter/X video collection, tagging clips, and maintaining a personal reference knowledge base. The included example is a storyboard collection:
+
+[![TStoryboard live validation screenshot](docs/assets/tstoryboard-preview-en.png)](https://bytedance.aiforce.cloud/app/app_4kbvt59uxdxaq/)
 
 TStoryboard is a static browser frontend and small Python toolkit for browsing, filtering, and tagging a user-supplied X/Twitter video reference library.
 
@@ -11,6 +13,7 @@ This repository contains only the frontend template and local processing tools. 
 ## Live Validation
 
 - Public entry: [https://bytedance.aiforce.cloud/app/app_4kbvt59uxdxaq/](https://bytedance.aiforce.cloud/app/app_4kbvt59uxdxaq/)
+- Accessing the live example and original Twitter/X sources may require a network environment that can reach Twitter/X.
 - The site is provided to validate the current frontend experience; its live data is not shipped with this repository.
 - If you fork or reuse this project, use media and index data that you have the rights to process.
 

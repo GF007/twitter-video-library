@@ -2,7 +2,9 @@
 
 [English README](README.en.md) · [在线验证入口](https://bytedance.aiforce.cloud/app/app_4kbvt59uxdxaq/)
 
-[![TStoryboard 在线验证截图](docs/assets/tstoryboard-preview.png)](https://bytedance.aiforce.cloud/app/app_4kbvt59uxdxaq/)
+当前仓库是围绕 Twitter/X 平台构建视频合集、tag 打标、个人知识库的流程文档。案例为分镜合集，链接如下：
+
+[![TStoryboard 在线验证截图](docs/assets/tstoryboard-preview-zh.png)](https://bytedance.aiforce.cloud/app/app_4kbvt59uxdxaq/)
 
 TStoryboard 是一个静态浏览器前端和小型 Python 工具集，用于浏览、筛选和打标用户自备的 X/Twitter 视频参考素材库。
 
@@ -11,6 +13,7 @@ TStoryboard 是一个静态浏览器前端和小型 Python 工具集，用于浏
 ## 在线验证
 
 - 公开入口：[https://bytedance.aiforce.cloud/app/app_4kbvt59uxdxaq/](https://bytedance.aiforce.cloud/app/app_4kbvt59uxdxaq/)
+- 访问线上案例和原始 Twitter/X 来源可能需要科学上网。
 - 该入口用于验证当前前端效果；线上展示数据不随本仓库发布。
 - 如果你 fork 或复用本项目，请使用你自己有权处理的素材和索引数据。
 
