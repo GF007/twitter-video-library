@@ -200,11 +200,183 @@ def apply_manual_edits(records, manual_edits):
         category = curated.get("category")
         if category and normalize_category(category) == DELETE_CATEGORY:
             other_category_count += 1
-            continue
 
         visible_records.append(record)
 
     return visible_records, len(excluded), other_category_count
+
+
+def record_category(record):
+    curated = record.get("curated") or {}
+    if not isinstance(curated, dict):
+        return ""
+    return normalize_category(curated.get("category"))
+
+
+def is_publishable_record(record):
+    category = record_category(record)
+    return bool(category and category != DELETE_CATEGORY)
+
+
+def duplicate_media_key(record):
+    tweet_id = str(record.get("tweet_id") or "").strip()
+    media_id = str(record.get("media_id") or "").strip()
+    if not tweet_id or not media_id:
+        return None
+    return (tweet_id, media_id)
+
+
+def source_relation_rank(record):
+    relation = str(record.get("source_relation") or "").strip().lower()
+    if relation == "post":
+        return 0
+    if not relation:
+        return 1
+    if relation == "quote":
+        return 2
+    if relation == "repost":
+        return 3
+    return 4
+
+
+def source_author_rank(record):
+    source = str(record.get("source_screen_name") or "").strip().lower()
+    author = str(record.get("author") or "").strip().lower()
+    if source and author == source:
+        return 0
+    if not source:
+        return 1
+    return 2
+
+
+def duplicate_candidate_key(record):
+    category = record_category(record)
+    if category and category != DELETE_CATEGORY:
+        category_rank = 0
+    elif not category:
+        category_rank = 1
+    else:
+        category_rank = 2
+
+    curated = record.get("curated") or {}
+    manual_rank = 0 if isinstance(curated, dict) and curated.get("manual_category") else 1
+    area = (as_int(record.get("width")) or 0) * (as_int(record.get("height")) or 0)
+    bitrate = as_int(record.get("bitrate")) or as_int(record.get("video_bit_rate")) or 0
+    return (
+        category_rank,
+        manual_rank,
+        source_relation_rank(record),
+        source_author_rank(record),
+        as_int(record.get("media_index")) if as_int(record.get("media_index")) is not None else 9999,
+        -area,
+        -bitrate,
+        record.get("id") or "",
+    )
+
+
+def duplicate_variant_key(record):
+    tweet_id = str(record.get("tweet_id") or "").strip()
+    width = as_int(record.get("width"))
+    height = as_int(record.get("height"))
+    duration = as_float(record.get("duration"))
+    if not tweet_id or not width or not height or not duration:
+        return None
+    duration_bucket = int(round(duration * 4))
+    return (tweet_id, width, height, duration_bucket)
+
+
+def duplicate_candidate_snapshot(record):
+    curated = record.get("curated") or {}
+    return {
+        "id": record.get("id"),
+        "author": record.get("author"),
+        "category": record_category(record),
+        "manual_category": bool(isinstance(curated, dict) and curated.get("manual_category")),
+        "source_relation": record.get("source_relation"),
+        "source_screen_name": record.get("source_screen_name"),
+        "timeline_screen_name": record.get("timeline_screen_name"),
+        "timeline_tweet_id": record.get("timeline_tweet_id"),
+        "tweet_url": record.get("tweet_url"),
+        "video_path": record.get("video_path"),
+        "media_id": record.get("media_id"),
+        "media_index": record.get("media_index"),
+        "width": record.get("width"),
+        "height": record.get("height"),
+        "duration": record.get("duration"),
+    }
+
+
+def dedupe_by_key(records, key_func):
+    groups = {}
+    for record in records:
+        key = key_func(record)
+        if not key:
+            continue
+        groups.setdefault(key, []).append(record)
+
+    duplicate_groups = {}
+    removed_ids = set()
+    report_groups = []
+    publishable_removed = 0
+
+    for key, candidates in groups.items():
+        if len(candidates) <= 1:
+            continue
+        duplicate_groups[key] = candidates
+        canonical = sorted(candidates, key=duplicate_candidate_key)[0]
+        canonical_id = canonical["id"]
+        removed = [record for record in candidates if record["id"] != canonical_id]
+        removed_ids.update(record["id"] for record in removed)
+        publishable_removed += sum(1 for record in removed if is_publishable_record(record))
+        report_groups.append(
+            {
+                "key": list(key) if isinstance(key, tuple) else key,
+                "canonical_id": canonical_id,
+                "duplicate_ids": [record["id"] for record in removed],
+                "candidates": [duplicate_candidate_snapshot(record) for record in candidates],
+            }
+        )
+
+    deduped = [record for record in records if record["id"] not in removed_ids]
+    summary = {
+        "groups": len(duplicate_groups),
+        "records_removed": len(removed_ids),
+        "publishable_records_removed": publishable_removed,
+    }
+    return deduped, report_groups, summary
+
+
+def dedupe_records(records):
+    records_after_exact, exact_groups, exact_summary = dedupe_by_key(records, duplicate_media_key)
+    records_after_variant, variant_groups, variant_summary = dedupe_by_key(records_after_exact, duplicate_variant_key)
+    report = {
+        "generated_at": now_iso(),
+        "method": "tweet_id_media_id_exact_then_same_tweet_variant_dedupe",
+        "exact_duplicate_key": ["tweet_id", "media_id"],
+        "variant_duplicate_key": ["tweet_id", "width", "height", "duration_quarter_second_bucket"],
+        "groups": exact_groups,
+        "variant_groups": variant_groups,
+        "summary": {
+            "duplicate_media_key_groups": exact_summary["groups"],
+            "duplicate_records_removed": exact_summary["records_removed"],
+            "duplicate_publishable_records_removed": exact_summary["publishable_records_removed"],
+            "duplicate_variant_groups": variant_summary["groups"],
+            "duplicate_variant_records_removed": variant_summary["records_removed"],
+            "duplicate_variant_publishable_records_removed": variant_summary["publishable_records_removed"],
+            "duplicate_records_removed_total": exact_summary["records_removed"] + variant_summary["records_removed"],
+            "duplicate_publishable_records_removed_total": (
+                exact_summary["publishable_records_removed"] + variant_summary["publishable_records_removed"]
+            ),
+            "records_before_dedupe": len(records),
+            "records_after_exact_dedupe": len(records_after_exact),
+            "records_after_dedupe": len(records_after_variant),
+        },
+    }
+    return records_after_variant, report
+
+
+def count_other_category(records):
+    return sum(1 for record in records if record_category(record) == DELETE_CATEGORY)
 
 
 def build_record(video_path, downloads_root, project_root, curated_tags):
@@ -234,6 +406,13 @@ def build_record(video_path, downloads_root, project_root, curated_tags):
         "tweet_url": metadata.get("tweet_url"),
         "tweet_text": metadata.get("tweet_text") or "",
         "source_tags": normalize_tags(metadata.get("tags")),
+        "source_relation": metadata.get("source_relation"),
+        "source_screen_name": metadata.get("source_screen_name"),
+        "timeline_source": metadata.get("timeline_source"),
+        "timeline_screen_name": metadata.get("timeline_screen_name"),
+        "timeline_tweet_id": metadata.get("timeline_tweet_id"),
+        "timeline_tweet_url": metadata.get("timeline_tweet_url"),
+        "timeline_author_screen_name": metadata.get("timeline_author_screen_name"),
         "bitrate": as_int(metadata.get("bitrate")),
         "video_bit_rate": as_int(metadata.get("video_bit_rate")),
         "width": width,
@@ -409,6 +588,9 @@ Rules:
 - Keep tags sparse. Prefer 1 primary category plus 0-3 useful tags.
 - Do not create one-off tags. If the material is not useful enough for the library, mark category=其他; after merge it is excluded from the index and reviewed by the coordinator for deletion.
 - Classify only from the thumbnail/contact sheet unless a manifest field gives necessary context.
+- Treat reaction/meme footage as 其他 even when it is colorful or animated-looking. Strong signals include overlaid joke captions, social-reply context, cropped TV/movie/live-action clips, image-macro layout, streamer/reaction faces, or a frame whose value is the joke rather than animation, staging, action, FX, camera, or composition reference.
+- Do not use color-animation alone as proof of 动画片段. Keep a finished clip only when the visible frame has reusable animation/reference value; if it only reads as a reaction meme, use 其他 with high confidence.
+- To avoid false positives, keep as 动画片段 with low confidence when the thumbnail clearly shows reusable action, posing, FX, shot design, or camera movement even if the tweet text is joking.
 - If unsure between 动画分镜 and 动画片段, use confidence=low and choose the closer visual state.
 
 Write JSONL to `library/tagging/agent_batches/<batch_id>.jsonl`.
@@ -423,7 +605,7 @@ Available batches:
     return prompt_path
 
 
-def summarize(records, thumb_results, batches, excluded_count=0, other_category_count=0):
+def summarize(records, thumb_results, batches, excluded_count=0, other_category_count=0, duplicate_report=None):
     categories = {}
     authors = {}
     curated = 0
@@ -432,13 +614,17 @@ def summarize(records, thumb_results, batches, excluded_count=0, other_category_
         if record.get("curated"):
             curated += 1
             category = normalize_category(record["curated"].get("category"))
-            if category and category != DELETE_CATEGORY:
+            if category:
                 categories[category] = categories.get(category, 0) + 1
 
     thumb_status = {}
     for result in thumb_results:
         status = result.get("status", "unknown")
         thumb_status[status] = thumb_status.get(status, 0) + 1
+
+    duplicate_summary = {}
+    if isinstance(duplicate_report, dict) and isinstance(duplicate_report.get("summary"), dict):
+        duplicate_summary = duplicate_report["summary"]
 
     return {
         "video_count": len(records),
@@ -448,6 +634,14 @@ def summarize(records, thumb_results, batches, excluded_count=0, other_category_
         "curated_category_counts": dict(sorted(categories.items())),
         "excluded_count": excluded_count,
         "other_category_delete_candidate_count": other_category_count,
+        "duplicate_media_key_groups": duplicate_summary.get("duplicate_media_key_groups", 0),
+        "duplicate_records_removed": duplicate_summary.get("duplicate_records_removed", 0),
+        "duplicate_publishable_records_removed": duplicate_summary.get("duplicate_publishable_records_removed", 0),
+        "duplicate_variant_groups": duplicate_summary.get("duplicate_variant_groups", 0),
+        "duplicate_variant_records_removed": duplicate_summary.get("duplicate_variant_records_removed", 0),
+        "duplicate_variant_publishable_records_removed": duplicate_summary.get("duplicate_variant_publishable_records_removed", 0),
+        "duplicate_records_removed_total": duplicate_summary.get("duplicate_records_removed_total", 0),
+        "duplicate_publishable_records_removed_total": duplicate_summary.get("duplicate_publishable_records_removed_total", 0),
         "batch_count": len(batches),
     }
 
@@ -484,8 +678,11 @@ def main():
     curated_tags = load_curated_tags(library_root)
     manual_edits = load_manual_edits(library_root)
     records = [build_record(path, downloads_root, project_root, curated_tags) for path in video_paths]
-    records, excluded_count, other_category_count = apply_manual_edits(records, manual_edits)
+    records, excluded_count, _other_category_count = apply_manual_edits(records, manual_edits)
     records.sort(key=lambda item: (item["author"].lower(), item.get("created_at") or "", item["id"]))
+    records, duplicate_report = dedupe_records(records)
+    records.sort(key=lambda item: (item["author"].lower(), item.get("created_at") or "", item["id"]))
+    other_category_count = count_other_category(records)
 
     id_filter = load_id_filter(args.thumbnail_ids_file)
     thumbnail_records = records
@@ -503,6 +700,7 @@ def main():
 
     report_path = Path(args.thumbnail_report) if args.thumbnail_report else library_root / "thumbnail-build-report.json"
     write_json(report_path, {"generated_at": now_iso(), "results": thumb_results})
+    write_json(library_root / "duplicate-media-report.json", duplicate_report)
 
     if args.only_thumbnails:
         thumb_status = {}
@@ -526,13 +724,17 @@ def main():
         "thumbnail_suffix": THUMB_SUFFIX,
         "records": records,
         "batches": batches,
-        "summary": summarize(records, thumb_results, batches, excluded_count, other_category_count),
+        "summary": summarize(records, thumb_results, batches, excluded_count, other_category_count, duplicate_report),
     }
     write_json(library_root / "videos.index.json", index)
 
     summary = index["summary"]
     print(f"videos={summary['video_count']} batches={summary['batch_count']} curated={summary['curated_count']}")
     print(f"other_category_delete_candidates={summary['other_category_delete_candidate_count']}")
+    print(f"duplicate_media_key_groups={summary['duplicate_media_key_groups']}")
+    print(f"duplicate_records_removed={summary['duplicate_records_removed']}")
+    print(f"duplicate_variant_groups={summary['duplicate_variant_groups']}")
+    print(f"duplicate_variant_records_removed={summary['duplicate_variant_records_removed']}")
     print(f"thumbnail_status={summary['thumbnail_status']}")
     print(f"wrote={library_root / 'videos.index.json'}")
     return 0

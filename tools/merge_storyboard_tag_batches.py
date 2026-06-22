@@ -7,6 +7,21 @@ from datetime import datetime
 from pathlib import Path
 
 
+DELETE_CATEGORY = "其他"
+CANONICAL_CATEGORIES = {
+    "动画分镜": "动画分镜",
+    "分镜": "动画分镜",
+    "storyboard": "动画分镜",
+    "animatic": "动画分镜",
+    "layout": "动画分镜",
+    "动画片段": "动画片段",
+    "动画": "动画片段",
+    "clip": "动画片段",
+    "animation": "动画片段",
+    "其他": "其他",
+    "other": "其他",
+    "unclear": "其他",
+}
 ALLOWED_TAGS = {
     "extreme-wide-shot",
     "wide-shot",
@@ -123,6 +138,20 @@ def normalize_tag(value):
     return TAG_ALIASES.get(tag, tag)
 
 
+def normalize_category(value):
+    text = str(value or "").strip()
+    if not text:
+        return "其他"
+    return CANONICAL_CATEGORIES.get(text.lower(), text)
+
+
+def category_of(record):
+    curated = record.get("curated") if isinstance(record, dict) else None
+    if isinstance(curated, dict):
+        return normalize_category(curated.get("category"))
+    return "未分类"
+
+
 def normalize_tags(value):
     if isinstance(value, str):
         value = [item for item in value.replace(",", " ").split(" ") if item.strip()]
@@ -182,7 +211,11 @@ def load_key_map(batch_root):
 def load_visible_ids(index_path):
     data = load_json(index_path, default={}) or {}
     records = data.get("records") or []
-    return {record["id"] for record in records if record.get("id")}
+    return {
+        record["id"]
+        for record in records
+        if record.get("id") and category_of(record) != DELETE_CATEGORY
+    }
 
 
 def merge_storyboard_rows(library_root, input_glob, project_root):

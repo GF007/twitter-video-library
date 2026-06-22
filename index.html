@@ -6,7 +6,7 @@
   <meta name="referrer" content="no-referrer">
   <link rel="icon" href="data:,">
   <title>分镜素材浏览器</title>
-  <script id="library-data" type="text/plain" data-encoding=""></script>
+  <script id="library-data" type="text/plain" data-encoding="" translate="no" class="notranslate"></script>
   <script>
     (() => {
       const storageKey = "twitterdown-storyboard-browser-v1";
@@ -34,6 +34,10 @@
       --blue: #4d758f;
       --gold: #9a7138;
       --red: #a95c55;
+      --daily-update-text: #b95f12;
+      --daily-update-bg: rgba(255, 248, 232, .42);
+      --daily-update-border: rgba(185, 95, 18, .18);
+      --daily-update-scroll-thumb: rgba(185, 95, 18, .28);
       --radius: 12px;
       --panel-radius: 18px;
       --shadow: 0 8px 18px rgba(65, 58, 45, .045);
@@ -113,7 +117,7 @@
       background: var(--masthead-bg);
       box-shadow: var(--shadow);
       display: grid;
-      grid-template-columns: 260px minmax(320px, 1fr) auto;
+      grid-template-columns: max-content minmax(260px, .7fr) minmax(320px, 1fr) auto;
       gap: 16px;
       align-items: center;
       padding: 16px 18px;
@@ -123,11 +127,20 @@
       min-width: 0;
     }
 
+    .identity-head {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      min-width: 0;
+    }
+
     .identity h1 {
       margin: 0;
       font-size: 20px;
       line-height: 1.2;
       font-weight: 700;
+      white-space: nowrap;
     }
 
     .identity p {
@@ -137,6 +150,77 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    .daily-update {
+      display: block;
+      min-width: 0;
+      max-width: 100%;
+      max-height: 42px;
+      padding: 3px 6px;
+      border: 1px solid var(--daily-update-border);
+      border-radius: 8px;
+      background: var(--daily-update-bg);
+      color: var(--daily-update-text);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.25;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scroll-behavior: smooth;
+      scroll-snap-type: y proximity;
+      scrollbar-width: thin;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .daily-update::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .daily-update::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: var(--daily-update-scroll-thumb);
+    }
+
+    .daily-update-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      min-height: 17px;
+      scroll-snap-align: start;
+    }
+
+    .daily-update-item + .daily-update-item {
+      margin-top: 3px;
+    }
+
+    .daily-update-item::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: currentColor;
+      flex: 0 0 auto;
+      opacity: .72;
+    }
+
+    .daily-update-text {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .daily-update[hidden] {
+      display: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .daily-update {
+        scroll-behavior: auto;
+      }
     }
 
     .search-panel {
@@ -776,6 +860,17 @@
       flex-wrap: wrap;
     }
 
+    .manual-category-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .manual-category-actions button {
+      flex: 1 1 112px;
+      min-height: 34px;
+    }
+
     .inspector-scroll {
       overflow: auto;
       padding: 14px 16px 18px;
@@ -978,6 +1073,10 @@
       --blue: #a8bfca;
       --gold: #d5b173;
       --red: #db9189;
+      --daily-update-text: #f0a35f;
+      --daily-update-bg: rgba(89, 58, 30, .28);
+      --daily-update-border: rgba(240, 163, 95, .24);
+      --daily-update-scroll-thumb: rgba(240, 163, 95, .38);
       --shadow: 0 6px 16px rgba(0, 0, 0, .2);
       --shadow-soft: 0 1px 1px rgba(0, 0, 0, .18);
       --page-bg: linear-gradient(135deg, #151a16 0%, #171c18 56%, #181b16 100%);
@@ -1079,6 +1178,10 @@
         --blue: #a8bfca;
         --gold: #d5b173;
         --red: #db9189;
+        --daily-update-text: #f0a35f;
+        --daily-update-bg: rgba(89, 58, 30, .28);
+        --daily-update-border: rgba(240, 163, 95, .24);
+        --daily-update-scroll-thumb: rgba(240, 163, 95, .38);
         --shadow: 0 6px 16px rgba(0, 0, 0, .2);
         --shadow-soft: 0 1px 1px rgba(0, 0, 0, .18);
         --page-bg: linear-gradient(135deg, #151a16 0%, #171c18 56%, #181b16 100%);
@@ -1560,6 +1663,19 @@
       border-radius: 9px;
     }
 
+    @media (max-width: 1400px) {
+      .masthead {
+        grid-template-columns: max-content minmax(280px, .85fr) minmax(320px, 1fr);
+        row-gap: 10px;
+        padding: 12px 14px;
+      }
+
+      .head-actions {
+        grid-column: 1 / -1;
+        justify-content: flex-start;
+      }
+    }
+
     @media (max-width: 1180px) {
       .workspace {
         --sidebar-width: 240px;
@@ -1567,7 +1683,16 @@
       }
 
       .masthead {
-        grid-template-columns: 230px minmax(280px, 1fr);
+        grid-template-columns: max-content minmax(240px, 1fr);
+      }
+
+      .identity-head {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 5px;
+      }
+
+      .search-panel {
+        grid-column: 1 / -1;
       }
 
       .head-actions {
@@ -1596,7 +1721,16 @@
       .identity h1 {
         font-size: 16px;
       }
-      .identity p {
+      .identity > p {
+        display: none;
+      }
+      .daily-update {
+        order: 3;
+        max-height: 40px;
+        padding: 2px 5px;
+        font-size: 11px;
+      }
+      .daily-update[hidden] {
         display: none;
       }
       .search-panel {
@@ -1610,7 +1744,7 @@
         height: 38px;
       }
       .head-actions {
-        order: 3;
+        order: 4;
         min-width: 0;
         max-width: 100%;
         justify-content: flex-start;
@@ -1856,7 +1990,13 @@
         padding: 8px;
       }
       .identity {
-        display: none;
+        display: block;
+      }
+      .identity-head {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .identity h1 {
+        font-size: 15px;
       }
       .search-line input {
         height: 36px;
@@ -1940,9 +2080,13 @@
   <div class="shell">
     <header class="masthead">
       <div class="identity">
-        <h1 data-i18n="appTitle">分镜素材浏览器</h1>
+        <div class="identity-head">
+          <h1 data-i18n="appTitle">分镜素材浏览器</h1>
+        </div>
         <p id="librarySummary" data-i18n="libraryLoading">正在读取本地索引</p>
       </div>
+
+      <div id="dailyUpdate" class="daily-update" hidden aria-live="polite" aria-label="更新信息" data-i18n-aria-label="updateFeedAria" tabindex="0"></div>
 
       <div class="search-panel">
         <div class="search-line">
@@ -2119,6 +2263,11 @@
         statItems: "素材",
         statDuration: "总时长",
         librarySummary: ({ count, duration }) => `${count} 个素材 · ${duration}`,
+        dailyUpdate: ({ date, count }) => `每日更新：${date} 新增 ${count} 条`,
+        dailyUpdateEmpty: ({ date }) => `每日更新：${date} 今日无新增`,
+        updateFeedAria: "更新信息",
+        updateFeedItem: ({ label, date, count }) => `${label}：${date} 新增 ${count} 条`,
+        updateFeedItemEmpty: ({ label, date }) => `${label}：${date} 今日无新增`,
         sourceTwitter: "Twitter/X 源",
         sourceServer: "服务器源",
         sourceLoading: "读取中",
@@ -2126,6 +2275,8 @@
         sourceFailed: "Twitter/X 源读取失败",
         writeFailed: "写入失败",
         writeHint: ({ detail }) => `写入失败：请用 python .\\tools\\serve_video_library.py --port 8765 打开页面。${detail ? ` (${detail})` : ""}`,
+        manualCategory: "手动分类",
+        categoryUpdated: ({ category }) => `已切换为${category}`,
         activeCategory: "类别",
         activeAuthor: "作者",
         activeTwitterTags: "Twitter标签",
@@ -2212,6 +2363,11 @@
         statItems: "Clips",
         statDuration: "Total duration",
         librarySummary: ({ count, duration }) => `${count} clips · ${duration}`,
+        dailyUpdate: ({ date, count }) => `Daily update: ${date} · ${count} new`,
+        dailyUpdateEmpty: ({ date }) => `Daily update: ${date} · no new clips today`,
+        updateFeedAria: "Update feed",
+        updateFeedItem: ({ label, date, count }) => `${label}: ${date} · ${count} new`,
+        updateFeedItemEmpty: ({ label, date }) => `${label}: ${date} · no new clips today`,
         sourceTwitter: "Twitter/X source",
         sourceServer: "Server source",
         sourceLoading: "Loading",
@@ -2219,6 +2375,8 @@
         sourceFailed: "Twitter/X source failed to load",
         writeFailed: "Write failed",
         writeHint: ({ detail }) => `Write failed: open the page with python .\\tools\\serve_video_library.py --port 8765.${detail ? ` (${detail})` : ""}`,
+        manualCategory: "Manual category",
+        categoryUpdated: ({ category }) => `Switched to ${category}`,
         activeCategory: "Category",
         activeAuthor: "Author",
         activeTwitterTags: "Twitter tags",
@@ -2323,6 +2481,7 @@
     const PLAYER_SOURCE_STORAGE_VERSION = 2;
     const PLAYER_SOURCE_SWITCH_VISIBLE = false;
     const DELETE_CATEGORY = "其他";
+    const MANUAL_CATEGORY_OPTIONS = ["动画片段", "动画分镜"];
     const state = {
       allRecords: [],
       records: [],
@@ -2343,6 +2502,7 @@
       writeApiAvailable: false,
       onlineMode: false,
       indexStatus: "loading",
+      dailyUpdates: [],
       renderLimit: LOAD_BATCH_SIZE,
       playerPanel: "collapsed",
       playerSource: PLAYER_SOURCE_DEFAULT,
@@ -2355,6 +2515,7 @@
       workspace: document.querySelector(".workspace"),
       sidebar: document.querySelector(".sidebar"),
       inspector: document.querySelector(".inspector"),
+      dailyUpdate: document.getElementById("dailyUpdate"),
       librarySummary: document.getElementById("librarySummary"),
       searchInput: document.getElementById("searchInput"),
       clearButton: document.getElementById("clearButton"),
@@ -2397,12 +2558,225 @@
     let autoLoadCheckPending = false;
     const sourceVideoUrlCache = new Map();
     let playerSourceRequestToken = 0;
+    const DAILY_UPDATE_VISIBLE_COUNT = 2;
+    const DAILY_UPDATE_AUTO_SCROLL_MS = 5200;
+    let dailyUpdateAutoScrollTimer = null;
+    let dailyUpdateManualPauseUntil = 0;
+    let dailyUpdatePointerInside = false;
 
     function uiText(key, vars = {}) {
       const pack = UI_TEXT[state.language] || UI_TEXT[LANGUAGE_DEFAULT];
       const fallback = UI_TEXT[LANGUAGE_DEFAULT][key];
       const value = Object.prototype.hasOwnProperty.call(pack, key) ? pack[key] : fallback;
       return typeof value === "function" ? value(vars) : value ?? key;
+    }
+
+    function firstPresent(...values) {
+      return values.find(value => value !== undefined && value !== null && value !== "");
+    }
+
+    function dateLabelFrom(value) {
+      const match = String(value || "").match(/\d{4}-\d{2}-\d{2}/);
+      return match ? match[0] : "";
+    }
+
+    function todayDateLabel() {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    }
+
+    function normalizeUpdateCount(value) {
+      const count = Number(value);
+      return Number.isFinite(count) && count >= 0 ? Math.floor(count) : null;
+    }
+
+    function normalizeUpdateCollection(value) {
+      if (value === undefined || value === null || value === "") return [];
+      if (Array.isArray(value)) return value;
+      if (typeof value === "object") {
+        const nested = firstPresent(
+          value.items,
+          value.updates,
+          value.feed,
+          value.update_feed,
+          value.updateFeed,
+          value.daily_updates,
+          value.dailyUpdates
+        );
+        if (Array.isArray(nested)) return nested;
+      }
+      return [value];
+    }
+
+    function normalizeUpdateItem(source, data, options = {}) {
+      const sourceObject = source && typeof source === "object" && !Array.isArray(source) ? source : null;
+      const date = dateLabelFrom(firstPresent(
+        sourceObject?.date,
+        sourceObject?.day,
+        sourceObject?.update_date,
+        sourceObject?.updateDate,
+        sourceObject?.updated_at,
+        sourceObject?.updatedAt,
+        sourceObject?.generated_at,
+        sourceObject?.generatedAt,
+        data?.generated_at,
+        data?.updated_at,
+        data?.updateDate
+      )) || todayDateLabel();
+
+      if (!sourceObject) {
+        const count = normalizeUpdateCount(source);
+        if (count === null && source !== undefined && source !== null && source !== "") {
+          return { text: String(source), date, count: null, kind: options.kind || "daily" };
+        }
+        return { date, count: count ?? (options.assumeZeroCount ? 0 : null), kind: options.kind || "daily" };
+      }
+
+      const displayText = options.preferDisplayText ? firstPresent(
+        sourceObject.display_text,
+        sourceObject.displayText,
+        sourceObject.text,
+        sourceObject.message
+      ) : null;
+      const count = normalizeUpdateCount(firstPresent(
+        sourceObject.new_count,
+        sourceObject.newCount,
+        sourceObject.added_count,
+        sourceObject.addedCount,
+        sourceObject.added,
+        sourceObject.new,
+        sourceObject.count,
+        sourceObject.clip_count,
+        sourceObject.clipCount,
+        sourceObject.record_count,
+        sourceObject.recordCount,
+        sourceObject.records,
+        sourceObject.counts?.new,
+        sourceObject.counts?.visible_new,
+        sourceObject.counts?.downloaded
+      ));
+      return {
+        text: displayText ? String(displayText) : "",
+        date,
+        count: count ?? (options.assumeZeroCount ? 0 : null),
+        label: firstPresent(sourceObject.label, sourceObject.title, sourceObject.name, options.label),
+        kind: firstPresent(sourceObject.kind, sourceObject.type, options.kind, "daily")
+      };
+    }
+
+    function normalizeDailyUpdates(data) {
+      if (!data || typeof data !== "object") return [];
+      const feedCandidates = [
+        data.update_feed,
+        data.updateFeed,
+        data.daily_updates,
+        data.dailyUpdates,
+        data.summary?.update_feed,
+        data.summary?.updateFeed,
+        data.summary?.daily_updates,
+        data.summary?.dailyUpdates,
+        data.update?.update_feed,
+        data.update?.updateFeed,
+        data.update?.daily_updates,
+        data.update?.dailyUpdates
+      ];
+      for (const candidate of feedCandidates) {
+        const items = normalizeUpdateCollection(candidate)
+          .map(item => normalizeUpdateItem(item, data, { preferDisplayText: true }))
+          .filter(Boolean);
+        if (items.length) return items;
+      }
+
+      const legacyCandidates = [
+        data.daily_update,
+        data.dailyUpdate,
+        data.summary?.daily_update,
+        data.summary?.dailyUpdate,
+        data.update?.daily_update,
+        data.update?.dailyUpdate,
+        data.update?.daily,
+        data.daily,
+        data.update
+      ];
+      for (const candidate of legacyCandidates) {
+        const items = normalizeUpdateCollection(candidate)
+          .map(item => normalizeUpdateItem(item, data, { assumeZeroCount: true }))
+          .filter(Boolean);
+        if (items.length) return items;
+      }
+      return [];
+    }
+
+    function dailyUpdateItemText(info) {
+      if (info.text) return info.text;
+      const date = info.date || todayDateLabel();
+      const label = info.label || (info.kind && info.kind !== "daily" ? info.kind : "");
+      if (label) {
+        if (info.count === null) return state.language === "en" ? `${label}: ${date}` : `${label}：${date}`;
+        return info.count > 0
+          ? uiText("updateFeedItem", { label, date, count: info.count })
+          : uiText("updateFeedItemEmpty", { label, date });
+      }
+      const dailyInfo = { date, count: info.count ?? 0 };
+      return dailyInfo.count > 0
+        ? uiText("dailyUpdate", dailyInfo)
+        : uiText("dailyUpdateEmpty", dailyInfo);
+    }
+
+    function clearDailyUpdateAutoScroll() {
+      if (dailyUpdateAutoScrollTimer) {
+        window.clearInterval(dailyUpdateAutoScrollTimer);
+        dailyUpdateAutoScrollTimer = null;
+      }
+    }
+
+    function prefersReducedMotion() {
+      return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    }
+
+    function pauseDailyUpdateAutoScroll(duration = 7000) {
+      dailyUpdateManualPauseUntil = Date.now() + duration;
+    }
+
+    function syncDailyUpdateAutoScroll() {
+      clearDailyUpdateAutoScroll();
+      const node = el.dailyUpdate;
+      if (!node || node.hidden || state.dailyUpdates.length <= DAILY_UPDATE_VISIBLE_COUNT || prefersReducedMotion()) return;
+      window.requestAnimationFrame(() => {
+        if (!node || node.hidden || node.scrollHeight <= node.clientHeight + 1) return;
+        dailyUpdateAutoScrollTimer = window.setInterval(() => {
+          if (dailyUpdatePointerInside || Date.now() < dailyUpdateManualPauseUntil) return;
+          const firstItem = node.querySelector(".daily-update-item");
+          const step = firstItem ? firstItem.offsetHeight + 3 : Math.max(1, Math.floor(node.clientHeight / DAILY_UPDATE_VISIBLE_COUNT));
+          const atEnd = node.scrollTop + node.clientHeight >= node.scrollHeight - 1;
+          node.scrollTo({ top: atEnd ? 0 : Math.min(node.scrollTop + step, node.scrollHeight), behavior: "smooth" });
+        }, DAILY_UPDATE_AUTO_SCROLL_MS);
+      });
+    }
+
+    function renderDailyUpdate() {
+      if (!el.dailyUpdate) return;
+      clearDailyUpdateAutoScroll();
+      const updates = state.dailyUpdates || [];
+      if (!updates.length) {
+        el.dailyUpdate.replaceChildren();
+        el.dailyUpdate.hidden = true;
+        return;
+      }
+      const fragment = document.createDocumentFragment();
+      updates.forEach(info => {
+        const item = document.createElement("div");
+        const text = document.createElement("span");
+        item.className = "daily-update-item";
+        text.className = "daily-update-text";
+        text.textContent = dailyUpdateItemText(info);
+        item.append(text);
+        fragment.append(item);
+      });
+      el.dailyUpdate.replaceChildren(fragment);
+      el.dailyUpdate.scrollTop = 0;
+      el.dailyUpdate.hidden = false;
+      syncDailyUpdateAutoScroll();
     }
 
     function applyStaticLanguageText() {
@@ -2422,6 +2796,7 @@
       document.documentElement.lang = state.language === "en" ? "en" : "zh-CN";
       document.title = uiText("documentTitle");
       applyStaticLanguageText();
+      renderDailyUpdate();
     }
 
     function displayFacetLabel(value) {
@@ -2691,7 +3066,19 @@
     }
 
     function shouldEnterLibrary(record) {
-      return categoryOf(record) !== DELETE_CATEGORY;
+      return shouldShowDeleteCategory() || categoryOf(record) !== DELETE_CATEGORY;
+    }
+
+    function shouldShowDeleteCategory() {
+      return !state.onlineMode;
+    }
+
+    function categoryFacetEntries(entries) {
+      return shouldShowDeleteCategory() ? entries : entries.filter(([name]) => name !== DELETE_CATEGORY);
+    }
+
+    function canWriteManualCategories() {
+      return !state.onlineMode && state.writeApiAvailable;
     }
 
     async function loadManualEdits() {
@@ -2929,7 +3316,7 @@
 
     function renderCategoryFacet(entries) {
       el.categoryFacet.innerHTML = "";
-      const visibleEntries = entries.filter(([name]) => name !== DELETE_CATEGORY);
+      const visibleEntries = categoryFacetEntries(entries);
       [[ALL, state.records.length], ...visibleEntries.slice(0, 8)].forEach(([name, count]) => {
         const row = document.createElement("div");
 
@@ -2954,7 +3341,7 @@
       const authors = countBy(state.records, record => record.author);
       const tags = countBy(state.records, record => allTags(record));
       const storyboardTagsCount = countBy(state.records, record => storyboardTags(record));
-      el.categoryCount.textContent = categories.filter(([name]) => name !== DELETE_CATEGORY).length;
+      el.categoryCount.textContent = categoryFacetEntries(categories).length;
       el.authorCount.textContent = authors.length;
       el.tagCount.textContent = tags.length;
       el.storyboardTagCount.textContent = storyboardTagsCount.length;
@@ -3201,6 +3588,39 @@
       if (isMobilePlayerLayout()) expandPlayer("mobile-card");
     }
 
+    function manualCategoryControls(record) {
+      if (!canWriteManualCategories()) return "";
+      const current = categoryOf(record);
+      return `
+        <section class="panel">
+          <h2>${escapeHtml(uiText("manualCategory"))}</h2>
+          <div class="manual-category-actions">
+            ${MANUAL_CATEGORY_OPTIONS.map(category => {
+              const active = current === category;
+              return `<button type="button" data-manual-category="${escapeAttr(category)}" class="${active ? "active" : ""}" aria-pressed="${String(active)}">${escapeHtml(categoryLabel(category))}</button>`;
+            }).join("")}
+          </div>
+        </section>
+      `;
+    }
+
+    async function updateManualCategory(record, category) {
+      if (!record || !MANUAL_CATEGORY_OPTIONS.includes(category) || !canWriteManualCategories()) return;
+      if (categoryOf(record) === category) return;
+      try {
+        await postManualEdit("category", {
+          id: record.id,
+          category,
+          previous_category: categoryOf(record)
+        });
+        state.renderLimit = LOAD_BATCH_SIZE;
+        applyFilters();
+        setEditStatus(uiText("categoryUpdated", { category: categoryLabel(category) }));
+      } catch (error) {
+        setEditStatus(manualWriteHint(error), true);
+      }
+    }
+
     function renderInspector() {
       const record = state.selected;
       if (!record) {
@@ -3235,6 +3655,7 @@
             <span>${escapeHtml(uiText("sourceTweet"))}</span><span>${record.tweet_url ? `<a href="${escapeAttr(record.tweet_url)}" target="_blank" rel="noreferrer">${escapeHtml(record.tweet_id)}</a>` : escapeHtml(record.tweet_id || "")}</span>
           </div>
         </section>
+        ${manualCategoryControls(record)}
         <section class="panel">
           <h2>${escapeHtml(uiText("tweetText"))}</h2>
           <p class="tweet-text">${escapeHtml(record.tweet_text || uiText("none"))}</p>
@@ -3245,6 +3666,11 @@
         node.addEventListener("click", () => {
           const next = state.records.find(item => item.id === node.dataset.id);
           if (next) selectRecord(next, true);
+        });
+      });
+      el.inspectorScroll.querySelectorAll("[data-manual-category]").forEach(node => {
+        node.addEventListener("click", () => {
+          updateManualCategory(record, node.dataset.manualCategory);
         });
       });
     }
@@ -3377,6 +3803,8 @@
       syncControls();
       try {
         const data = await loadLibraryIndex();
+        state.dailyUpdates = normalizeDailyUpdates(data);
+        renderDailyUpdate();
         state.allRecords = data.records || [];
         state.manualEdits = await loadManualEdits();
         state.indexStatus = "ready";
@@ -3385,9 +3813,24 @@
         applyFilters();
       } catch (error) {
         state.indexStatus = "error";
+        state.dailyUpdates = [];
+        renderDailyUpdate();
         el.librarySummary.textContent = uiText("indexLoadFailed");
         el.clipGrid.innerHTML = `<div class="empty">${uiText("indexLoadHelp")}</div>`;
       }
+    }
+
+    if (el.dailyUpdate) {
+      el.dailyUpdate.addEventListener("wheel", () => pauseDailyUpdateAutoScroll(), { passive: true });
+      el.dailyUpdate.addEventListener("touchstart", () => pauseDailyUpdateAutoScroll(), { passive: true });
+      el.dailyUpdate.addEventListener("focusin", () => pauseDailyUpdateAutoScroll());
+      el.dailyUpdate.addEventListener("pointerenter", () => {
+        dailyUpdatePointerInside = true;
+      });
+      el.dailyUpdate.addEventListener("pointerleave", () => {
+        dailyUpdatePointerInside = false;
+        pauseDailyUpdateAutoScroll(2500);
+      });
     }
 
     el.searchInput.addEventListener("input", event => {
@@ -3445,6 +3888,7 @@
     window.addEventListener("resize", () => {
       applyPlayerWidth(state.playerWidth);
       syncPlayerPanelFromWidth();
+      syncDailyUpdateAutoScroll();
     });
     el.playerScrim.addEventListener("click", () => collapsePlayer("scrim"));
     el.playerExpandButton.addEventListener("click", () => expandPlayer("manual"));
