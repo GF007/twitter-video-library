@@ -126,6 +126,12 @@ python tools/merge_storyboard_tag_batches.py --library library --index library/v
 
 Generated indexes, thumbnails, contact sheets, manual edits, and accepted tag files are local working data. Review them before sharing.
 
+## License
+
+The source code, tooling, and documentation in this repository are licensed under the MIT License. See [LICENSE](LICENSE).
+
+This license only applies to source code and documentation committed to this repository. It does not apply to third-party media, Twitter/X content, downloaded metadata, creator/source lists, generated indexes, thumbnails, contact sheets, accepted tagging results, or private data. Those materials are not part of this open-source release and remain subject to their original rights holders.
+
 ## Privacy And Copyright
 
 Only process media you have permission to store, inspect, and transform. Do not publish private videos, creator lists, personal data, cookies, credentials, or generated indexes that reveal private collections. Respect the rights and terms that apply to the original media sources.

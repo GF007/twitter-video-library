@@ -126,6 +126,12 @@ python tools/merge_storyboard_tag_batches.py --library library --index library/v
 
 生成的索引、缩略图、contact sheet、手动编辑和已验收标签都是本地工作数据，分享前请先审查。
 
+## 开源协议
+
+本仓库中的源码、工具脚本和文档基于 MIT License 开源，详见 [LICENSE](LICENSE)。
+
+该协议仅适用于本仓库实际提交的源码和文档，不适用于第三方媒体内容、Twitter/X 原始内容、下载元数据、创作者/source 列表、生成索引、缩略图、contact sheet、打标结果或私有数据。这些内容不属于本开源发布范围，相关权利归原权利人所有。
+
 ## 隐私与版权
 
 只处理你有权保存、检查和转换的媒体。不要公开私有视频、创作者列表、个人信息、cookie、凭据，或会暴露私人收藏的生成索引。请遵守原始媒体来源适用的权利和服务条款。
