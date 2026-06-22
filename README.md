@@ -2,7 +2,7 @@
 
 [English README](README.en.md) · [在线验证入口](https://bytedance.aiforce.cloud/app/app_4kbvt59uxdxaq/)
 
-当前仓库是围绕 Twitter/X 平台构建视频合集、tag 打标、个人知识库的流程文档。案例为分镜合集，链接如下：
+当前仓库是围绕 Twitter/X 平台构建视频合集、tag 打标、个人知识库的流程文档。案例为分镜合集，用当前仓库制作的分镜知识库效果链接如下：
 
 [![TStoryboard 在线验证截图](docs/assets/tstoryboard-preview-zh.png)](https://bytedance.aiforce.cloud/app/app_4kbvt59uxdxaq/)
 
