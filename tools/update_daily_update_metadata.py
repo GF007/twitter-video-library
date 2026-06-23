@@ -120,7 +120,15 @@ def update_feed_items(index, feed_field, feed_item, max_items, seed_item=None):
 
     key = feed_item_key(feed_item)
     deduped = [item for item in existing if feed_item_key(item) != key]
-    return [*deduped, feed_item][-max_items:]
+    items = [*deduped, feed_item]
+    items.sort(
+        key=lambda item: (
+            item.get("date") if isinstance(item, dict) else "",
+            item.get("updated_at") if isinstance(item, dict) else "",
+        ),
+        reverse=True,
+    )
+    return items[:max_items]
 
 
 def prepare_index_update(index_path, field_name, metadata, feed_field=None, feed_item=None, max_items=20, mirror_daily_update=True):
@@ -183,7 +191,7 @@ def main():
     output_path = Path(args.output) if args.output else library_root / "daily-update.json"
     index_path = Path(args.index) if args.index else library_root / "videos.index.json"
     metadata = build_metadata(args)
-    feed_item = build_feed_item(args, metadata) if args.append_feed else None
+    feed_item = build_feed_item(args, metadata) if args.append_feed or args.kind == "daily" else None
 
     index_data = None
     index_status = "disabled"
@@ -193,7 +201,7 @@ def main():
             index_path,
             args.index_field,
             metadata,
-            args.feed_field if args.append_feed else None,
+            args.feed_field if feed_item else None,
             feed_item,
             args.max_items,
             mirror_daily_update,

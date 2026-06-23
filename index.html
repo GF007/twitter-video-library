@@ -829,11 +829,14 @@
     }
 
     .video-frame {
+      --sampled-frame-padding: 0px;
+      --sampled-progress-height: 6px;
       aspect-ratio: 16 / 9;
       border: 1px solid var(--line);
       border-radius: var(--radius);
       background: var(--video-frame-bg);
       overflow: hidden;
+      position: relative;
     }
 
     video {
@@ -841,6 +844,87 @@
       width: 100%;
       height: 100%;
       background: var(--poster-bg);
+    }
+
+    .video-frame #player {
+      position: relative;
+      z-index: 0;
+    }
+
+    .video-frame.is-sampling {
+      cursor: pointer;
+    }
+
+    .video-frame.is-sampling #player {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #sampledFrameCanvas {
+      position: absolute;
+      top: var(--sampled-frame-padding);
+      left: var(--sampled-frame-padding);
+      display: block;
+      width: calc(100% - var(--sampled-frame-padding) - var(--sampled-frame-padding));
+      height: calc(100% - var(--sampled-frame-padding) - var(--sampled-frame-padding) - var(--sampled-progress-height));
+      background: var(--video-bg, var(--poster-bg));
+      border-radius: 10px 10px 0 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    #sampledFrameCanvas[hidden] {
+      display: none;
+    }
+
+    #sampledProgress {
+      position: absolute;
+      left: var(--sampled-frame-padding);
+      bottom: var(--sampled-frame-padding);
+      width: calc(100% - var(--sampled-frame-padding) - var(--sampled-frame-padding));
+      height: var(--sampled-progress-height);
+      overflow: hidden;
+      border-radius: 0 0 10px 10px;
+      background: rgba(16, 26, 20, .34);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    #sampledProgress[hidden] {
+      display: none;
+    }
+
+    #sampledProgressBar {
+      width: 100%;
+      height: 100%;
+      transform: scaleX(0);
+      transform-origin: left center;
+      background: linear-gradient(90deg, rgba(95, 171, 125, .92), rgba(195, 234, 179, .96));
+      transition: transform 120ms linear;
+    }
+
+    #sampledModeBadge {
+      position: absolute;
+      top: calc(var(--sampled-frame-padding) + 10px);
+      left: calc(var(--sampled-frame-padding) + 10px);
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 4px 10px;
+      border: 1px solid rgba(235, 255, 239, .78);
+      border-radius: 999px;
+      background: rgba(31, 122, 72, .92);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, .22);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    #sampledModeBadge[hidden] {
+      display: none;
     }
 
     .now-playing {
@@ -858,6 +942,46 @@
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
+    }
+
+    .frame-step-group {
+      flex: 1 1 112px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      min-width: 0;
+      min-height: 38px;
+    }
+
+    .frame-step-group button {
+      min-width: 0;
+      min-height: 38px;
+      padding: 0 4px;
+      border-radius: 0;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .frame-step-group button:first-child {
+      border-radius: 999px 0 0 999px;
+    }
+
+    .frame-step-group button:last-child {
+      border-radius: 0 999px 999px 0;
+    }
+
+    .frame-rate-select {
+      flex: 1 1 132px;
+      min-height: 38px;
+      padding-left: 31px;
+      text-align: center;
+      text-align-last: center;
+    }
+
+    .frame-rate-select.modified {
+      border-color: var(--frame-rate-modified-border);
+      background-color: var(--frame-rate-modified-bg);
+      color: var(--frame-rate-modified-text);
+      box-shadow: var(--frame-rate-modified-shadow);
     }
 
     .manual-category-actions {
@@ -1050,6 +1174,10 @@
       --control-muted: #667266;
       --control-accent: #3d7658;
       --control-accent-soft: rgba(61, 118, 88, .16);
+      --frame-rate-modified-bg: #d8f3e1;
+      --frame-rate-modified-border: #8bbf9d;
+      --frame-rate-modified-text: #1f7a48;
+      --frame-rate-modified-shadow: inset 0 0 0 1px rgba(31, 122, 72, .18);
       --control-gold: #c8932c;
       --control-danger: #b76b65;
       --control-shadow: 0 3px 8px rgba(45, 58, 49, .045);
@@ -1154,6 +1282,10 @@
       --control-muted: #adb8ad;
       --control-accent: #9abd9f;
       --control-accent-soft: rgba(154, 189, 159, .22);
+      --frame-rate-modified-bg: rgba(58, 116, 78, .38);
+      --frame-rate-modified-border: rgba(139, 191, 157, .72);
+      --frame-rate-modified-text: #c4f0cf;
+      --frame-rate-modified-shadow: inset 0 0 0 1px rgba(196, 240, 207, .16);
       --control-gold: #d5b173;
       --control-danger: #db9189;
       --control-shadow: 0 3px 8px rgba(0, 0, 0, .2);
@@ -1606,6 +1738,7 @@
     }
 
     .video-frame {
+      --sampled-frame-padding: 8px;
       padding: 8px;
       border-color: var(--control-border);
       border-radius: 14px;
@@ -1630,13 +1763,6 @@
     .player-actions button {
       flex: 1 1 112px;
       min-height: 38px;
-    }
-
-    #favoriteButton.active {
-      border-color: var(--favorite-active-border);
-      background: var(--favorite-active-bg);
-      color: var(--favorite-active-text);
-      box-shadow: var(--favorite-active-shadow);
     }
 
     .mini-item {
@@ -2083,7 +2209,7 @@
         <div class="identity-head">
           <h1 data-i18n="appTitle">分镜素材浏览器</h1>
         </div>
-        <p id="librarySummary" data-i18n="libraryLoading">正在读取本地索引</p>
+        <p id="librarySummary" data-i18n="libraryLoading">正在读取素材索引</p>
       </div>
 
       <div id="dailyUpdate" class="daily-update" hidden aria-live="polite" aria-label="更新信息" data-i18n-aria-label="updateFeedAria" tabindex="0"></div>
@@ -2176,13 +2302,34 @@
             </div>
             <div class="video-frame">
               <video id="player" controls playsinline></video>
+              <canvas id="sampledFrameCanvas" hidden aria-hidden="true"></canvas>
+              <div id="sampledProgress" hidden role="progressbar" aria-label="采样播放进度" data-i18n-aria-label="sampledProgressAria" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div id="sampledProgressBar"></div>
+              </div>
+              <div id="sampledModeBadge" hidden data-i18n="framePlaybackMode">帧播放模式</div>
             </div>
             <div class="now-playing" id="nowPlaying" data-i18n="selectClip">选择一个素材开始播放</div>
             <div class="player-actions">
-              <button id="prevButton" type="button" data-i18n="previous">上一个</button>
-              <button id="nextButton" type="button" data-i18n="next">下一个</button>
-              <button id="favoriteButton" type="button">收藏</button>
-              <button id="copyPathButton" type="button" data-i18n="copyPath">复制路径</button>
+              <button id="playPauseButton" type="button" data-i18n="playPausePlay">播放</button>
+              <div class="frame-step-group" role="group" aria-label="后退帧" data-i18n-aria-label="previousFrameGroup">
+                <button id="prev10FrameButton" type="button" data-i18n="previous10Frames">上10帧</button>
+                <button id="prev5FrameButton" type="button" data-i18n="previous5Frames">上5帧</button>
+                <button id="prevFrameButton" type="button" data-i18n="previousFrame">上一帧</button>
+              </div>
+              <div class="frame-step-group" role="group" aria-label="前进帧" data-i18n-aria-label="nextFrameGroup">
+                <button id="nextFrameButton" type="button" data-i18n="nextFrame">下一帧</button>
+                <button id="next5FrameButton" type="button" data-i18n="next5Frames">下5帧</button>
+                <button id="next10FrameButton" type="button" data-i18n="next10Frames">下10帧</button>
+              </div>
+              <select id="frameRateSelect" class="frame-rate-select" aria-label="采样帧率" data-i18n-aria-label="frameRateAria">
+                <option value="native" data-i18n="frameRateNative">原速</option>
+                <option value="48" data-i18n="frameRate48">48 帧/秒</option>
+                <option value="24" data-i18n="frameRate24">24 帧/秒</option>
+                <option value="12" data-i18n="frameRate12">12 帧/秒</option>
+                <option value="6" data-i18n="frameRate6">6 帧/秒</option>
+                <option value="2" data-i18n="frameRate2">2 帧/秒</option>
+                <option value="1" data-i18n="frameRate1">1 帧/秒</option>
+              </select>
             </div>
           </div>
         </div>
@@ -2224,7 +2371,7 @@
       zh: {
         documentTitle: "分镜素材浏览器",
         appTitle: "分镜素材浏览器",
-        libraryLoading: "正在读取本地索引",
+        libraryLoading: "正在读取素材索引",
         searchPlaceholder: "搜索作者、tag、文本、tweet id",
         clear: "清空",
         sortAria: "排序",
@@ -2252,12 +2399,33 @@
         collapse: "收起",
         collapsePlayer: "收起播放器",
         selectClip: "选择一个素材开始播放",
-        previous: "上一个",
-        next: "下一个",
+        playPausePlay: "播放",
+        playPausePause: "暂停",
+        playPauseReplay: "重播",
+        playPauseAriaPlay: "播放当前素材",
+        playPauseAriaPause: "暂停当前素材",
+        playPauseAriaReplay: "重播当前素材",
+        previousFrameGroup: "后退帧",
+        nextFrameGroup: "前进帧",
+        previous10Frames: "上10帧",
+        previous5Frames: "上5帧",
+        previousFrame: "上一帧",
+        nextFrame: "下一帧",
+        next5Frames: "下5帧",
+        next10Frames: "下10帧",
+        frameRateAria: "采样帧率",
+        frameRateNative: "原速",
+        frameRate48: "48 帧/秒",
+        frameRate24: "24 帧/秒",
+        frameRate12: "12 帧/秒",
+        frameRate6: "6 帧/秒",
+        frameRate2: "2 帧/秒",
+        frameRate1: "1 帧/秒",
+        sampledProgressAria: "采样播放进度",
+        framePlaybackMode: "帧播放模式",
         favorite: "收藏",
         favorited: "已收藏",
         unfavorite: "取消收藏",
-        copyPath: "复制路径",
         inspectorHint: "左侧筛选素材，中间点击卡片。播放器会跟随当前筛选结果。",
         all: "全部",
         statItems: "素材",
@@ -2319,12 +2487,12 @@
         sourceAria: ({ isTwitter }) => isTwitter ? "当前使用 Twitter/X 源，点击切换到服务器源" : "当前使用服务器源，点击切换到 Twitter/X 源",
         gzipUnsupported: "当前浏览器不支持内置 gzip 数据解压，请使用新版 Chrome 或 Edge。",
         indexLoadFailed: "索引读取失败",
-        indexLoadHelp: "无法加载素材索引。请先运行 <code>python .\\tools\\build_video_library.py</code> 并通过本地 HTTP 服务打开页面。"
+        indexLoadHelp: "无法加载素材索引。线上页面请稍后刷新；本地页面请先运行 <code>python .\\tools\\build_video_library.py</code> 并通过本地 HTTP 服务打开。"
       },
       en: {
         documentTitle: "Storyboard Clip Browser",
         appTitle: "Storyboard Clip Browser",
-        libraryLoading: "Loading local index",
+        libraryLoading: "Loading clip index",
         searchPlaceholder: "Search author, tag, text, tweet id",
         clear: "Clear",
         sortAria: "Sort",
@@ -2352,12 +2520,33 @@
         collapse: "Collapse",
         collapsePlayer: "Collapse player",
         selectClip: "Select a clip to start playback",
-        previous: "Previous",
-        next: "Next",
+        playPausePlay: "Play",
+        playPausePause: "Pause",
+        playPauseReplay: "Replay",
+        playPauseAriaPlay: "Play current clip",
+        playPauseAriaPause: "Pause current clip",
+        playPauseAriaReplay: "Replay current clip",
+        previousFrameGroup: "Step backward",
+        nextFrameGroup: "Step forward",
+        previous10Frames: "-10f",
+        previous5Frames: "-5f",
+        previousFrame: "-1f",
+        nextFrame: "+1f",
+        next5Frames: "+5f",
+        next10Frames: "+10f",
+        frameRateAria: "Sample FPS",
+        frameRateNative: "Normal",
+        frameRate48: "48 fps",
+        frameRate24: "24 fps",
+        frameRate12: "12 fps",
+        frameRate6: "6 fps",
+        frameRate2: "2 fps",
+        frameRate1: "1 fps",
+        sampledProgressAria: "Sample playback progress",
+        framePlaybackMode: "Frame playback mode",
         favorite: "Favorite",
         favorited: "Favorited",
         unfavorite: "Remove favorite",
-        copyPath: "Copy path",
         inspectorHint: "Filter clips on the left, then click a card in the middle. The player follows the current results.",
         all: "All",
         statItems: "Clips",
@@ -2419,7 +2608,7 @@
         sourceAria: ({ isTwitter }) => isTwitter ? "Using Twitter/X source. Click to switch to server source." : "Using server source. Click to switch to Twitter/X source.",
         gzipUnsupported: "This browser does not support built-in gzip decompression. Use a current Chrome or Edge.",
         indexLoadFailed: "Index load failed",
-        indexLoadHelp: "Could not load the clip index. Run <code>python .\\tools\\build_video_library.py</code> first and open the page through the local HTTP server."
+        indexLoadHelp: "Could not load the clip index. Refresh the online page later, or run <code>python .\\tools\\build_video_library.py</code> before opening a local page through the local HTTP server."
       }
     };
 
@@ -2480,6 +2669,10 @@
     const PLAYER_SOURCE_DEFAULT = PLAYER_SOURCE_TWITTER;
     const PLAYER_SOURCE_STORAGE_VERSION = 2;
     const PLAYER_SOURCE_SWITCH_VISIBLE = false;
+    const FRAME_RATE_NATIVE = "native";
+    const DEFAULT_FRAME_RATE = 24;
+    const LIBRARY_INDEX_CACHE_DB = "twitterdown-library-index-cache";
+    const LIBRARY_INDEX_CACHE_STORE = "payloads";
     const DELETE_CATEGORY = "其他";
     const MANUAL_CATEGORY_OPTIONS = ["动画片段", "动画分镜"];
     const state = {
@@ -2507,7 +2700,8 @@
       playerPanel: "collapsed",
       playerSource: PLAYER_SOURCE_DEFAULT,
       playerWidth: PLAYER_DEFAULT_WIDTH,
-      playerResizePointerId: null
+      playerResizePointerId: null,
+      frameRateMode: FRAME_RATE_NATIVE
     };
 
     const el = {
@@ -2542,12 +2736,21 @@
       clipGrid: document.getElementById("clipGrid"),
       loadMoreWrap: document.getElementById("loadMoreWrap"),
       loadMoreButton: document.getElementById("loadMoreButton"),
+      videoFrame: document.querySelector(".video-frame"),
       player: document.getElementById("player"),
       nowPlaying: document.getElementById("nowPlaying"),
-      prevButton: document.getElementById("prevButton"),
-      nextButton: document.getElementById("nextButton"),
-      favoriteButton: document.getElementById("favoriteButton"),
-      copyPathButton: document.getElementById("copyPathButton"),
+      playPauseButton: document.getElementById("playPauseButton"),
+      prev10FrameButton: document.getElementById("prev10FrameButton"),
+      prev5FrameButton: document.getElementById("prev5FrameButton"),
+      prevFrameButton: document.getElementById("prevFrameButton"),
+      nextFrameButton: document.getElementById("nextFrameButton"),
+      next5FrameButton: document.getElementById("next5FrameButton"),
+      next10FrameButton: document.getElementById("next10FrameButton"),
+      frameRateSelect: document.getElementById("frameRateSelect"),
+      sampledFrameCanvas: document.getElementById("sampledFrameCanvas"),
+      sampledProgress: document.getElementById("sampledProgress"),
+      sampledProgressBar: document.getElementById("sampledProgressBar"),
+      sampledModeBadge: document.getElementById("sampledModeBadge"),
       playerScrim: document.getElementById("playerScrim"),
       playerExpandButton: document.getElementById("playerExpandButton"),
       playerCollapseButton: document.getElementById("playerCollapseButton"),
@@ -2558,11 +2761,15 @@
     let autoLoadCheckPending = false;
     const sourceVideoUrlCache = new Map();
     let playerSourceRequestToken = 0;
+    let sampledFrameBucket = null;
+    let sampledFrameLoopToken = 0;
+    let sampledFrameAnimationFrameId = 0;
+    let sampledFrameVideoCallbackId = 0;
     const DAILY_UPDATE_VISIBLE_COUNT = 2;
-    const DAILY_UPDATE_AUTO_SCROLL_MS = 5200;
+    const DAILY_UPDATE_AUTO_SCROLL_MS = 1800;
     let dailyUpdateAutoScrollTimer = null;
     let dailyUpdateManualPauseUntil = 0;
-    let dailyUpdatePointerInside = false;
+    let dailyUpdateAutoScrollActive = false;
 
     function uiText(key, vars = {}) {
       const pack = UI_TEXT[state.language] || UI_TEXT[LANGUAGE_DEFAULT];
@@ -2738,25 +2945,47 @@
       dailyUpdateManualPauseUntil = Date.now() + duration;
     }
 
+    function resetDailyUpdateScroll(behavior = "smooth") {
+      const node = el.dailyUpdate;
+      if (!node) return;
+      node.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : behavior });
+    }
+
     function syncDailyUpdateAutoScroll() {
       clearDailyUpdateAutoScroll();
       const node = el.dailyUpdate;
-      if (!node || node.hidden || state.dailyUpdates.length <= DAILY_UPDATE_VISIBLE_COUNT || prefersReducedMotion()) return;
+      if (!dailyUpdateAutoScrollActive || !node || node.hidden || state.dailyUpdates.length < 2 || prefersReducedMotion()) return;
       window.requestAnimationFrame(() => {
         if (!node || node.hidden || node.scrollHeight <= node.clientHeight + 1) return;
-        dailyUpdateAutoScrollTimer = window.setInterval(() => {
-          if (dailyUpdatePointerInside || Date.now() < dailyUpdateManualPauseUntil) return;
+        const scrollNextItem = () => {
+          if (!dailyUpdateAutoScrollActive || Date.now() < dailyUpdateManualPauseUntil) return;
           const firstItem = node.querySelector(".daily-update-item");
           const step = firstItem ? firstItem.offsetHeight + 3 : Math.max(1, Math.floor(node.clientHeight / DAILY_UPDATE_VISIBLE_COUNT));
           const atEnd = node.scrollTop + node.clientHeight >= node.scrollHeight - 1;
           node.scrollTo({ top: atEnd ? 0 : Math.min(node.scrollTop + step, node.scrollHeight), behavior: "smooth" });
-        }, DAILY_UPDATE_AUTO_SCROLL_MS);
+        };
+        scrollNextItem();
+        dailyUpdateAutoScrollTimer = window.setInterval(scrollNextItem, DAILY_UPDATE_AUTO_SCROLL_MS);
       });
+    }
+
+    function startDailyUpdateHoverScroll() {
+      dailyUpdateAutoScrollActive = true;
+      dailyUpdateManualPauseUntil = 0;
+      syncDailyUpdateAutoScroll();
+    }
+
+    function stopDailyUpdateHoverScroll() {
+      dailyUpdateAutoScrollActive = false;
+      dailyUpdateManualPauseUntil = 0;
+      clearDailyUpdateAutoScroll();
+      resetDailyUpdateScroll();
     }
 
     function renderDailyUpdate() {
       if (!el.dailyUpdate) return;
       clearDailyUpdateAutoScroll();
+      dailyUpdateAutoScrollActive = false;
       const updates = state.dailyUpdates || [];
       if (!updates.length) {
         el.dailyUpdate.replaceChildren();
@@ -2776,7 +3005,6 @@
       el.dailyUpdate.replaceChildren(fragment);
       el.dailyUpdate.scrollTop = 0;
       el.dailyUpdate.hidden = false;
-      syncDailyUpdateAutoScroll();
     }
 
     function applyStaticLanguageText() {
@@ -2823,6 +3051,7 @@
         state.language = normalizeLanguage(saved.language) || state.language;
         state.autoplay = Boolean(saved.autoplay);
         state.favoritesOnly = Boolean(saved.favoritesOnly);
+        state.frameRateMode = normalizeFrameRateMode(saved.frameRateMode);
         const savedPlayerSourceVersion = Number(saved.playerSourceVersion);
         state.playerSource = PLAYER_SOURCE_SWITCH_VISIBLE && savedPlayerSourceVersion >= PLAYER_SOURCE_STORAGE_VERSION
           ? normalizePlayerSource(saved.playerSource)
@@ -2848,6 +3077,7 @@
         playerSourceVersion: PLAYER_SOURCE_STORAGE_VERSION,
         playerSource: state.playerSource,
         playerWidth: state.playerWidth,
+        frameRateMode: state.frameRateMode,
         favorites: [...state.favorites]
       }));
     }
@@ -2908,6 +3138,7 @@
       el.playerResizeHandle.setAttribute("aria-valuemax", String(playerMaxWidth()));
       el.playerResizeHandle.setAttribute("aria-valuenow", String(nextWidth));
       if (persist) saveState();
+      syncSampledFrameCanvas({ force: true });
       requestAutoLoadCheck();
       return nextWidth;
     }
@@ -2958,7 +3189,256 @@
       syncPlayerPanelFromWidth();
     }
 
+    function normalizeFrameRateMode(value) {
+      if (value === FRAME_RATE_NATIVE) return FRAME_RATE_NATIVE;
+      const numericValue = Number(value);
+      return [1, 2, 6, 12, 24, 48].includes(numericValue) ? String(numericValue) : FRAME_RATE_NATIVE;
+    }
+
+    function isFrameRateMode() {
+      return state.frameRateMode !== FRAME_RATE_NATIVE;
+    }
+
+    function parseFrameRate(value) {
+      if (typeof value === "number") return Number.isFinite(value) && value > 0 ? value : null;
+      if (typeof value !== "string") return null;
+      const text = value.trim();
+      if (!text) return null;
+      if (text.includes("/")) {
+        const [numerator, denominator] = text.split("/").map(Number);
+        return Number.isFinite(numerator) && Number.isFinite(denominator) && denominator > 0 ? numerator / denominator : null;
+      }
+      const numericValue = Number(text);
+      return Number.isFinite(numericValue) && numericValue > 0 ? numericValue : null;
+    }
+
+    function selectedSourceFrameRate(record = state.selected) {
+      return (
+        parseFrameRate(record?.fps) ||
+        parseFrameRate(record?.frame_rate) ||
+        parseFrameRate(record?.avg_frame_rate) ||
+        parseFrameRate(record?.r_frame_rate) ||
+        DEFAULT_FRAME_RATE
+      );
+    }
+
+    function selectedFrameStepSeconds(record = state.selected) {
+      const explicitStep = Number(record?.frame_step_seconds);
+      if (Number.isFinite(explicitStep) && explicitStep > 0) return explicitStep;
+      return 1 / selectedSourceFrameRate(record);
+    }
+
+    function playerDuration() {
+      const videoDuration = Number(el.player.duration);
+      if (Number.isFinite(videoDuration) && videoDuration > 0) return videoDuration;
+      const recordDuration = Number(state.selected?.duration);
+      return Number.isFinite(recordDuration) && recordDuration > 0 ? recordDuration : null;
+    }
+
+    function canStepPlayerFrame() {
+      return Boolean(state.selected && (el.player.currentSrc || el.player.getAttribute("src")) && el.player.readyState >= 1);
+    }
+
+    function targetSampleFrameRate() {
+      const targetFrameRate = Number(state.frameRateMode);
+      return isFrameRateMode() && Number.isFinite(targetFrameRate) && targetFrameRate > 0 ? targetFrameRate : null;
+    }
+
+    function playerHasSource() {
+      return Boolean(el.player.currentSrc || el.player.getAttribute("src"));
+    }
+
+    function shouldSamplePlayerFrames() {
+      return Boolean(targetSampleFrameRate() && playerHasSource());
+    }
+
+    function syncFrameRateModeVisualState() {
+      const sampleMode = isFrameRateMode();
+      const activeSampleMode = sampleMode && playerHasSource();
+      el.player.controls = !sampleMode;
+      if (el.videoFrame) {
+        el.videoFrame.classList.toggle("is-sampling", activeSampleMode);
+      }
+      if (el.sampledModeBadge) {
+        el.sampledModeBadge.hidden = !activeSampleMode;
+      }
+    }
+
+    function resetPlayerNativePlaybackRate() {
+      try {
+        el.player.defaultPlaybackRate = 1;
+        el.player.playbackRate = 1;
+      } catch {
+      }
+    }
+
+    function cancelSampledFrameRequests() {
+      if (sampledFrameAnimationFrameId) {
+        window.cancelAnimationFrame(sampledFrameAnimationFrameId);
+        sampledFrameAnimationFrameId = 0;
+      }
+      if (sampledFrameVideoCallbackId && typeof el.player.cancelVideoFrameCallback === "function") {
+        try {
+          el.player.cancelVideoFrameCallback(sampledFrameVideoCallbackId);
+        } catch {
+        }
+      }
+      sampledFrameVideoCallbackId = 0;
+    }
+
+    function stopSampledFrameLoop() {
+      sampledFrameLoopToken += 1;
+      cancelSampledFrameRequests();
+    }
+
+    function scheduleSampledFrameLoop(token) {
+      if (token !== sampledFrameLoopToken || !shouldSamplePlayerFrames() || el.player.paused || el.player.ended) return;
+      const callback = () => {
+        if (token !== sampledFrameLoopToken) return;
+        sampledFrameAnimationFrameId = 0;
+        sampledFrameVideoCallbackId = 0;
+        syncSampledFrameCanvas();
+        scheduleSampledFrameLoop(token);
+      };
+      if (typeof el.player.requestVideoFrameCallback === "function") {
+        try {
+          sampledFrameVideoCallbackId = el.player.requestVideoFrameCallback(callback);
+          return;
+        } catch {
+          sampledFrameVideoCallbackId = 0;
+        }
+      }
+      sampledFrameAnimationFrameId = window.requestAnimationFrame(callback);
+    }
+
+    function startSampledFrameLoop() {
+      sampledFrameLoopToken += 1;
+      const token = sampledFrameLoopToken;
+      cancelSampledFrameRequests();
+      scheduleSampledFrameLoop(token);
+    }
+
+    function clearSampledFrameCanvas() {
+      sampledFrameBucket = null;
+      const canvas = el.sampledFrameCanvas;
+      if (!canvas) return;
+      const context = canvas.getContext("2d");
+      if (context) context.clearRect(0, 0, canvas.width, canvas.height);
+      canvas.hidden = true;
+      syncSampledProgress();
+    }
+
+    function sampledProgressRatio() {
+      const duration = playerDuration();
+      const currentTime = Number(el.player.currentTime);
+      if (!Number.isFinite(duration) || duration <= 0 || !Number.isFinite(currentTime)) return 0;
+      return Math.max(0, Math.min(1, currentTime / duration));
+    }
+
+    function syncSampledProgress() {
+      if (!el.sampledProgress || !el.sampledProgressBar) return;
+      const active = shouldSamplePlayerFrames();
+      el.sampledProgress.hidden = !active;
+      const ratio = active ? sampledProgressRatio() : 0;
+      el.sampledProgressBar.style.transform = `scaleX(${ratio})`;
+      el.sampledProgress.setAttribute("aria-valuenow", String(Math.round(ratio * 100)));
+    }
+
+    function syncSampledFrameCanvasSize() {
+      const canvas = el.sampledFrameCanvas;
+      const rect = canvas.getBoundingClientRect();
+      const ratio = Math.max(1, window.devicePixelRatio || 1);
+      const nextWidth = Math.max(1, Math.round(rect.width * ratio));
+      const nextHeight = Math.max(1, Math.round(rect.height * ratio));
+      if (canvas.width === nextWidth && canvas.height === nextHeight) return false;
+      canvas.width = nextWidth;
+      canvas.height = nextHeight;
+      return true;
+    }
+
+    function drawSampledFrameCanvas() {
+      const canvas = el.sampledFrameCanvas;
+      const context = canvas.getContext("2d");
+      if (!context) return;
+      const width = canvas.width;
+      const height = canvas.height;
+      context.fillStyle = getComputedStyle(el.player).backgroundColor || "#000";
+      context.fillRect(0, 0, width, height);
+      const videoWidth = el.player.videoWidth;
+      const videoHeight = el.player.videoHeight;
+      if (el.player.readyState < 2 || !videoWidth || !videoHeight) return;
+      const scale = Math.min(width / videoWidth, height / videoHeight);
+      const drawWidth = Math.round(videoWidth * scale);
+      const drawHeight = Math.round(videoHeight * scale);
+      const drawX = Math.round((width - drawWidth) / 2);
+      const drawY = Math.round((height - drawHeight) / 2);
+      try {
+        context.drawImage(el.player, drawX, drawY, drawWidth, drawHeight);
+      } catch {
+      }
+    }
+
+    function syncSampledFrameCanvas({ force = false, resetBucket = false } = {}) {
+      resetPlayerNativePlaybackRate();
+      syncFrameRateModeVisualState();
+      if (!shouldSamplePlayerFrames()) {
+        clearSampledFrameCanvas();
+        return;
+      }
+      syncSampledProgress();
+      const canvas = el.sampledFrameCanvas;
+      canvas.hidden = false;
+      if (resetBucket) sampledFrameBucket = null;
+      const resized = syncSampledFrameCanvasSize();
+      const targetFrameRate = targetSampleFrameRate();
+      const currentTime = Number(el.player.currentTime);
+      const nextBucket = Number.isFinite(currentTime) && targetFrameRate ? Math.floor(currentTime * targetFrameRate) : null;
+      if (force || resized || nextBucket !== sampledFrameBucket) {
+        drawSampledFrameCanvas();
+        sampledFrameBucket = nextBucket;
+      }
+    }
+
+    function syncSampledFramePlaybackState(options = {}) {
+      syncSampledFrameCanvas(options);
+      if (shouldSamplePlayerFrames() && !el.player.paused && !el.player.ended) {
+        startSampledFrameLoop();
+      } else {
+        stopSampledFrameLoop();
+      }
+    }
+
+    function setPlayerCurrentTime(nextTime) {
+      const duration = playerDuration();
+      const upperBound = duration === null ? Number.POSITIVE_INFINITY : duration;
+      el.player.currentTime = Math.min(upperBound, Math.max(0, nextTime));
+    }
+
+    function stepPlayerFrame(direction, frameCount = 1) {
+      if (!canStepPlayerFrame()) return false;
+      el.player.pause();
+      setPlayerCurrentTime(el.player.currentTime + direction * selectedFrameStepSeconds() * frameCount);
+      syncSampledFramePlaybackState({ force: true, resetBucket: true });
+      syncControls();
+      return true;
+    }
+
+    function setFrameRateMode(value) {
+      state.frameRateMode = normalizeFrameRateMode(value);
+      syncSampledFramePlaybackState({ force: true, resetBucket: true });
+      syncControls();
+      saveState();
+    }
+
     function requestPlayerPlay() {
+      resetPlayerNativePlaybackRate();
+      if (!playerHasSource()) return;
+      if (el.player.ended) {
+        try {
+          el.player.currentTime = 0;
+        } catch {
+        }
+      }
       try {
         const playResult = el.player.play();
         if (playResult && typeof playResult.catch === "function") playResult.catch(() => {});
@@ -2966,8 +3446,18 @@
       }
     }
 
+    function togglePlayerPlayback() {
+      if (!state.selected || !playerHasSource()) return;
+      if (el.player.paused || el.player.ended) requestPlayerPlay();
+      else el.player.pause();
+      syncControls();
+    }
+
     function clearPlayerSource() {
       playerSourceRequestToken += 1;
+      stopSampledFrameLoop();
+      clearSampledFrameCanvas();
+      resetPlayerNativePlaybackRate();
       el.player.removeAttribute("src");
       el.player.load();
     }
@@ -3009,6 +3499,9 @@
     async function applySelectedPlayerSource(record = state.selected, shouldPlay = false) {
       const requestToken = playerSourceRequestToken + 1;
       playerSourceRequestToken = requestToken;
+      stopSampledFrameLoop();
+      clearSampledFrameCanvas();
+      resetPlayerNativePlaybackRate();
       if (!record) {
         el.player.removeAttribute("src");
         el.player.load();
@@ -3017,6 +3510,7 @@
 
       if (state.playerSource === PLAYER_SOURCE_SERVER) {
         el.player.src = record.video_path;
+        syncSampledFramePlaybackState({ force: true, resetBucket: true });
         el.nowPlaying.textContent = nowPlayingText(record);
         if (shouldPlay) requestPlayerPlay();
         return;
@@ -3025,6 +3519,7 @@
       const directUrl = directTwitterVideoUrl(record);
       if (directUrl) {
         el.player.src = directUrl;
+        syncSampledFramePlaybackState({ force: true, resetBucket: true });
         el.nowPlaying.textContent = nowPlayingText(record);
         if (shouldPlay) requestPlayerPlay();
         return;
@@ -3038,18 +3533,26 @@
         if (requestToken !== playerSourceRequestToken || state.selected?.id !== record.id || state.playerSource !== PLAYER_SOURCE_TWITTER) return;
         if (twitterUrl) {
           el.player.src = twitterUrl;
+          syncSampledFramePlaybackState({ force: true, resetBucket: true });
           el.nowPlaying.textContent = nowPlayingText(record);
           if (shouldPlay) requestPlayerPlay();
+          syncControls();
         } else {
+          stopSampledFrameLoop();
+          clearSampledFrameCanvas();
           el.player.removeAttribute("src");
           el.player.load();
           el.nowPlaying.textContent = nowPlayingText(record, uiText("sourceMissing"));
+          syncControls();
         }
       } catch {
         if (requestToken !== playerSourceRequestToken || state.selected?.id !== record.id || state.playerSource !== PLAYER_SOURCE_TWITTER) return;
+        stopSampledFrameLoop();
+        clearSampledFrameCanvas();
         el.player.removeAttribute("src");
         el.player.load();
         el.nowPlaying.textContent = nowPlayingText(record, uiText("sourceFailed"));
+        syncControls();
       }
     }
 
@@ -3625,13 +4128,9 @@
       const record = state.selected;
       if (!record) {
         el.inspectorScroll.innerHTML = `<div class="empty">${uiText("inspectorEmpty")}</div>`;
-        el.favoriteButton.textContent = uiText("favorite");
-        el.favoriteButton.classList.remove("active");
-        el.copyPathButton.disabled = true;
         return;
       }
 
-      el.copyPathButton.disabled = false;
       const group = state.records
         .filter(item => item.tweet_group_key === record.tweet_group_key)
         .sort((a, b) => (a.media_index ?? 0) - (b.media_index ?? 0) || a.id.localeCompare(b.id));
@@ -3741,16 +4240,36 @@
         "aria-label",
         uiText("sourceAria", { isTwitter: isTwitterSource })
       );
-      const index = queueIndex();
-      el.prevButton.disabled = index <= 0;
-      el.nextButton.disabled = index < 0 || index >= state.filtered.length - 1;
-      const fav = Boolean(state.selected && state.favorites.has(state.selected.id));
-      el.favoriteButton.textContent = fav ? uiText("favorited") : uiText("favorite");
-      el.favoriteButton.classList.toggle("active", fav);
-    }
-
-    function copyText(text) {
-      navigator.clipboard.writeText(text).catch(() => {});
+      syncFrameRateModeVisualState();
+      const canTogglePlayback = Boolean(state.selected && playerHasSource());
+      const playPauseKey = el.player.ended
+        ? "playPauseReplay"
+        : el.player.paused
+          ? "playPausePlay"
+          : "playPausePause";
+      const playPauseAriaKey = el.player.ended
+        ? "playPauseAriaReplay"
+        : el.player.paused
+          ? "playPauseAriaPlay"
+          : "playPauseAriaPause";
+      el.playPauseButton.textContent = uiText(playPauseKey);
+      el.playPauseButton.disabled = !canTogglePlayback;
+      el.playPauseButton.setAttribute("aria-label", uiText(playPauseAriaKey));
+      el.playPauseButton.setAttribute("aria-pressed", String(canTogglePlayback && !el.player.paused && !el.player.ended));
+      const canStep = canStepPlayerFrame();
+      const duration = playerDuration();
+      const atStart = !canStep || el.player.currentTime <= 0;
+      const atEnd = !canStep || (duration !== null && el.player.currentTime >= duration);
+      [el.prev10FrameButton, el.prev5FrameButton, el.prevFrameButton].forEach(button => {
+        button.disabled = atStart;
+      });
+      [el.nextFrameButton, el.next5FrameButton, el.next10FrameButton].forEach(button => {
+        button.disabled = atEnd;
+      });
+      el.frameRateSelect.value = state.frameRateMode;
+      el.frameRateSelect.disabled = !state.selected;
+      el.frameRateSelect.classList.toggle("modified", isFrameRateMode());
+      syncSampledProgress();
     }
 
     function escapeHtml(value) {
@@ -3778,11 +4297,93 @@
       return JSON.parse(await new Response(stream).text());
     }
 
+    async function decodeGzipResponseJson(response) {
+      if (!("DecompressionStream" in window)) {
+        throw new Error(uiText("gzipUnsupported"));
+      }
+      const source = response.body || new Blob([await response.arrayBuffer()]).stream();
+      const stream = source.pipeThrough(new DecompressionStream("gzip"));
+      return JSON.parse(await new Response(stream).text());
+    }
+
+    function openLibraryIndexCache() {
+      if (!("indexedDB" in window)) return Promise.resolve(null);
+      return new Promise(resolve => {
+        let request;
+        try {
+          request = indexedDB.open(LIBRARY_INDEX_CACHE_DB, 1);
+        } catch {
+          resolve(null);
+          return;
+        }
+        request.onupgradeneeded = () => {
+          const db = request.result;
+          if (!db.objectStoreNames.contains(LIBRARY_INDEX_CACHE_STORE)) {
+            db.createObjectStore(LIBRARY_INDEX_CACHE_STORE, { keyPath: "key" });
+          }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => resolve(null);
+        request.onblocked = () => resolve(null);
+      });
+    }
+
+    async function readCachedLibraryIndex(cacheKey) {
+      const db = await openLibraryIndexCache();
+      if (!db) return null;
+      return new Promise(resolve => {
+        const finish = value => {
+          db.close();
+          resolve(value);
+        };
+        try {
+          const tx = db.transaction(LIBRARY_INDEX_CACHE_STORE, "readonly");
+          const request = tx.objectStore(LIBRARY_INDEX_CACHE_STORE).get(cacheKey);
+          request.onsuccess = () => finish(request.result?.payload || null);
+          request.onerror = () => finish(null);
+        } catch {
+          finish(null);
+        }
+      });
+    }
+
+    async function writeCachedLibraryIndex(cacheKey, payload) {
+      const db = await openLibraryIndexCache();
+      if (!db) return;
+      return new Promise(resolve => {
+        const finish = () => {
+          db.close();
+          resolve();
+        };
+        try {
+          const tx = db.transaction(LIBRARY_INDEX_CACHE_STORE, "readwrite");
+          const store = tx.objectStore(LIBRARY_INDEX_CACHE_STORE);
+          store.clear();
+          store.put({ key: cacheKey, payload, storedAt: Date.now() });
+          tx.oncomplete = finish;
+          tx.onerror = finish;
+          tx.onabort = finish;
+        } catch {
+          finish();
+        }
+      });
+    }
+
+    function scheduleLibraryIndexCacheWrite(cacheKey, payload) {
+      const write = () => writeCachedLibraryIndex(cacheKey, payload).catch(() => {});
+      if ("requestIdleCallback" in window) {
+        window.requestIdleCallback(write, { timeout: 2500 });
+      } else {
+        window.setTimeout(write, 0);
+      }
+    }
+
     async function loadEmbeddedLibraryData() {
       const node = document.getElementById("library-data");
       const raw = (node?.textContent || "").trim();
       if (!raw) return null;
-      const data = node.dataset.encoding === "gzip-base64" ? await decodeGzipBase64Json(raw) : JSON.parse(raw);
+      const encoding = node?.dataset.encoding || "";
+      const data = encoding === "gzip-base64" ? await decodeGzipBase64Json(raw) : JSON.parse(raw);
       state.onlineMode = true;
       return data;
     }
@@ -3791,9 +4392,26 @@
       const embedded = await loadEmbeddedLibraryData();
       if (embedded) return embedded;
 
-      const response = await fetch("library/videos.index.json", { cache: "no-store" });
+      const node = document.getElementById("library-data");
+      const remoteSrc = (node?.dataset.remoteSrc || "").trim();
+      const remoteEncoding = (node?.dataset.remoteEncoding || "").trim();
+      const cacheKey = remoteSrc ? `library-index:${remoteSrc}` : "";
+      if (cacheKey) {
+        const cached = await readCachedLibraryIndex(cacheKey);
+        if (cached) {
+          state.onlineMode = true;
+          return cached;
+        }
+      }
+      const response = await fetch(remoteSrc || "library/videos.index.json", remoteSrc ? { cache: "force-cache" } : { cache: "no-store" });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      return response.json();
+      if (remoteSrc) state.onlineMode = true;
+      let data;
+      if (remoteEncoding === "gzip") data = await decodeGzipResponseJson(response);
+      else if (remoteEncoding) throw new Error(`Unsupported remote index encoding: ${remoteEncoding}`);
+      else data = await response.json();
+      if (cacheKey) scheduleLibraryIndexCacheWrite(cacheKey, data);
+      return data;
     }
 
     async function init() {
@@ -3823,14 +4441,10 @@
     if (el.dailyUpdate) {
       el.dailyUpdate.addEventListener("wheel", () => pauseDailyUpdateAutoScroll(), { passive: true });
       el.dailyUpdate.addEventListener("touchstart", () => pauseDailyUpdateAutoScroll(), { passive: true });
-      el.dailyUpdate.addEventListener("focusin", () => pauseDailyUpdateAutoScroll());
-      el.dailyUpdate.addEventListener("pointerenter", () => {
-        dailyUpdatePointerInside = true;
-      });
-      el.dailyUpdate.addEventListener("pointerleave", () => {
-        dailyUpdatePointerInside = false;
-        pauseDailyUpdateAutoScroll(2500);
-      });
+      el.dailyUpdate.addEventListener("focusin", startDailyUpdateHoverScroll);
+      el.dailyUpdate.addEventListener("focusout", stopDailyUpdateHoverScroll);
+      el.dailyUpdate.addEventListener("pointerenter", startDailyUpdateHoverScroll);
+      el.dailyUpdate.addEventListener("pointerleave", stopDailyUpdateHoverScroll);
     }
 
     el.searchInput.addEventListener("input", event => {
@@ -3923,14 +4537,53 @@
         syncPlayerPanelFromWidth();
       }
     });
-    el.prevButton.addEventListener("click", () => playOffset(-1));
-    el.nextButton.addEventListener("click", () => playOffset(1));
-    el.favoriteButton.addEventListener("click", toggleFavorite);
-    el.copyPathButton.addEventListener("click", () => {
-      if (state.selected) copyText(state.selected.video_path);
+    el.playPauseButton.addEventListener("click", togglePlayerPlayback);
+    el.prev10FrameButton.addEventListener("click", () => stepPlayerFrame(-1, 10));
+    el.prev5FrameButton.addEventListener("click", () => stepPlayerFrame(-1, 5));
+    el.prevFrameButton.addEventListener("click", () => stepPlayerFrame(-1, 1));
+    el.nextFrameButton.addEventListener("click", () => stepPlayerFrame(1, 1));
+    el.next5FrameButton.addEventListener("click", () => stepPlayerFrame(1, 5));
+    el.next10FrameButton.addEventListener("click", () => stepPlayerFrame(1, 10));
+    el.frameRateSelect.addEventListener("change", event => setFrameRateMode(event.target.value));
+    el.player.addEventListener("loadedmetadata", () => {
+      syncSampledFramePlaybackState({ force: true, resetBucket: true });
+      syncControls();
+    });
+    el.player.addEventListener("loadeddata", () => {
+      syncSampledFramePlaybackState({ force: true, resetBucket: true });
+    });
+    el.player.addEventListener("timeupdate", syncControls);
+    el.player.addEventListener("play", () => {
+      syncSampledFramePlaybackState({ force: true });
+      syncControls();
+    });
+    el.player.addEventListener("pause", () => {
+      syncSampledFramePlaybackState({ force: true });
+      syncControls();
+    });
+    el.player.addEventListener("seeking", () => {
+      syncSampledFramePlaybackState({ force: true, resetBucket: true });
+      syncControls();
+    });
+    el.player.addEventListener("seeked", () => {
+      syncSampledFramePlaybackState({ force: true, resetBucket: true });
+      syncControls();
+    });
+    el.player.addEventListener("emptied", () => {
+      stopSampledFrameLoop();
+      clearSampledFrameCanvas();
+      resetPlayerNativePlaybackRate();
+      syncControls();
     });
     el.player.addEventListener("ended", () => {
+      syncSampledFramePlaybackState({ force: true });
       if (state.autoplay) playOffset(1);
+      else syncControls();
+    });
+    el.videoFrame.addEventListener("click", event => {
+      if (!shouldSamplePlayerFrames()) return;
+      event.preventDefault();
+      togglePlayerPlayback();
     });
     document.addEventListener("keydown", event => {
       if (event.target.matches("input, textarea, select")) return;
@@ -3938,13 +4591,17 @@
         collapsePlayer("escape");
         return;
       }
-      if (event.key === "ArrowRight") playOffset(1);
-      if (event.key === "ArrowLeft") playOffset(-1);
-      if (event.key.toLowerCase() === "f") toggleFavorite();
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        stepPlayerFrame(1);
+      }
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        stepPlayerFrame(-1);
+      }
       if (event.key === " ") {
         event.preventDefault();
-        if (el.player.paused) requestPlayerPlay();
-        else el.player.pause();
+        togglePlayerPlayback();
       }
     });
 

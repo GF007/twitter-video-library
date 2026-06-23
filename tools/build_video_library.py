@@ -346,6 +346,37 @@ def dedupe_by_key(records, key_func):
     return deduped, report_groups, summary
 
 
+def report_duplicate_candidates_by_key(records, key_func):
+    groups = {}
+    for record in records:
+        key = key_func(record)
+        if not key:
+            continue
+        groups.setdefault(key, []).append(record)
+
+    report_groups = []
+    for key, candidates in groups.items():
+        if len(candidates) <= 1:
+            continue
+        canonical = sorted(candidates, key=duplicate_candidate_key)[0]
+        canonical_id = canonical["id"]
+        report_groups.append(
+            {
+                "key": list(key) if isinstance(key, tuple) else key,
+                "canonical_id": canonical_id,
+                "duplicate_ids": [record["id"] for record in candidates if record["id"] != canonical_id],
+                "candidates": [duplicate_candidate_snapshot(record) for record in candidates],
+            }
+        )
+
+    summary = {
+        "groups": len(report_groups),
+        "records_removed": 0,
+        "publishable_records_removed": 0,
+    }
+    return report_groups, summary
+
+
 def dedupe_records(records):
     records_after_exact, exact_groups, exact_summary = dedupe_by_key(records, duplicate_media_key)
     records_after_variant, variant_groups, variant_summary = dedupe_by_key(records_after_exact, duplicate_variant_key)
